@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+<style>
+
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    margin: auto;
+    position: relative;
+    width: 960px;
+  }
+
+  text {
+    font: 14px sans-serif;
+  }
+
+  form {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+  }
+  
+  input {
+    margin: 0 7px;
+  }
+
+</style>
+	<title>First Example</title>
+	<script type="text/javascript" src="/d3/d3.js"></script>
+</head>
+<body>
+	<div id="chart"></div>
+	<script type="text/javascript">
+		
+		var width = 960,
+			height = 960;
+
+		var color = d3.scaleOrdinal(d3.schemeCategory20)
+		
+
+
+		var svg = d3.select("body")
+					.append("svg")
+					.attr("width", width)
+					.attr("height", height)
+					.append("g")
+					.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+		
+		var radiusScale = d3.scaleLog().domain([1,100]).range([1, 30]);
+
+		var simulation = d3.forceSimulation()
+							.force("x", d3.forceX().strength(0.025))
+							.force("y", d3.forceY().strength(0.025))
+							.force("collide", d3.forceCollide(function(d){ return d.value/2 + 5; }))
+
+		var title = svg
+			.append("text")
+		    .attr("class", "title")
+		  	.attr("transform", "translate(-480,-350)")
+		  	.style("font-size", "30px")
+		    .text("Acceso a Electricidad (% de Población)");							
+
+
+		d3.queue()
+			.defer(d3.csv, "data.csv")
+			.await(ready)
+
+		function ready (error, datapoints) {
+
+			var circles = svg.selectAll('g')
+							.data(datapoints)
+							.enter().append('circle')
+							.attr("r", function(d) { return d.value/2; })
+							.attr("fill", function(d){ return color(d.value); })
+							
+							
+
+			var texts = svg.selectAll("g")
+							.data(datapoints)
+							.enter().append("text")
+							.text(function(d){ return d.country + ", " + d.value + "%"; });
+			
+
+			simulation.nodes(datapoints)
+					.on("tick", ticked)
+
+
+			function ticked(){
+				circles
+					.attr("cx", function(d){ return d.x; })
+					.attr("cy", function(d){ return d.y; })
+				texts
+					.attr("x", function(d){ return d.x; })
+					.attr("dy", function(d){ return d.y; })
+					.attr("text-anchor", "middle")
+					
+
+				
+
+			}
+
+		
+		}
+
+	
+    </script>
+</body>
+</html>
